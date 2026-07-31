@@ -13,6 +13,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: DEBUG - show the actual sub claim
+        run: |
+          TOKEN=$(curl -sH "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          echo "===== TOKEN CLAIMS ====="
+          echo $TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq '{sub, aud, repository, ref}'
+          echo "========================"
+
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -21,6 +29,3 @@ jobs:
 
       - name: Who am I
         run: aws sts get-caller-identity
-
-      - name: List buckets
-        run: aws s3 ls
